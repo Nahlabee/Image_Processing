@@ -1,0 +1,85 @@
+
+% Déterminer le temps de 1s à 100s avec une période d'échantillonnage de 0.1s
+t = 1:0.1:100;
+
+% Définir la précision à 10^-5
+precis = 1e-5;
+
+% Définir alpha à 10^-2
+alpha = 1e-2;
+e = 10;
+
+% Simuler le modèle y(t) = k1*exp(-t/B1) + k2*exp(-t/B2) avec k1=15, k2=5, B1=20, B2=10
+k1 = 15;
+B1 = 20;
+k2 = 5;
+B2 = 10;
+yt = k1 * exp(-t/B1) + k2 * exp(-t/B2);
+
+% Générer un bruit blanc br de variance 0.16
+variance_bruit = 0.16;
+br = sqrt(variance_bruit) * randn(size(t));
+
+% Ajouter le bruit à y
+yb = yt + br;
+
+% Tracer y en bleu
+figure(1)
+plot(t, yt, 'b')
+hold on
+
+% Tracer yb(t) en noir
+plot(t, yb, 'k')
+
+% Ajouter des titres et légendes
+title('Simulation du modèle avec bruit')
+xlabel('Temps (s)')
+ylabel('Amplitude')
+
+% Maintenir la figure ouverte
+hold on
+
+% Le modèle ym(i) = x1*exp(-t(i)/x2) + x3*exp(-t(i)/x4), initialiser le vecteur des paramètres (5,10,1,2)
+x = [5; 10; 1; 2];
+
+% Tracer yt en bleu
+figure(2)
+plot(t, yt, 'b')
+hold on
+plot(t, yb, 'k')
+hold on
+
+% Ajouter un compteur pour compter le nombre d'itérations
+compteur_iteration = 0;
+%ymm = zeros(size(t)); % Initialiser ymm avec la bonne taille
+
+while e > precis % max(abs(Xkp1-preced))>precis
+    % Calculer le gradient
+    grad = [0; 0; 0; 0]; % Initialiser x=vect_colonne_4*1 => grad=vect_colonne_4*1
+    for i = 1:length(t)
+        ym(i) = x(1) * exp(-t(i)/x(2)) + x(3) * exp(-t(i)/x(4));
+        grad = grad - 2 * (yb(i) - ym(i)) * [exp(-t(i)/x(2)); t(i)*(x(1)/x(2)^2)*exp(-t(i)/x(2)); exp(-t(i)/x(4)); t(i)*(x(3)/x(4)^2)*exp(-t(i)/x(4))];
+    end
+    
+    % Mise à jour du vecteur de paramètre, e, ...
+    Xnp1 = x - alpha * grad;
+    e = max(abs(Xnp1 - x));
+    x = Xnp1;
+    compteur_iteration=compteur_iteration+1;
+    
+    % Tracer ym(t) sur la figure déjà ouverte
+    plot(t, ym, 'r');
+    
+    % Mettre à jour ymm avec les valeurs de ym
+    %ymm = ym;
+    
+    % Définir une pause de 0.1 s
+    pause(0.1)
+end
+
+% Calculer ym(t) avec le résultat d'identification du vecteur des paramètres
+ym = x(1) * exp(-t/x(2)) + x(3) * exp(-t/x(4));
+
+% Tracer y et ym(t) sur la même figure avec des couleurs différentes
+figure(5)
+plot(t, yt, 'g')
