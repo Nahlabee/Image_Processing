@@ -1,0 +1,121 @@
+clc
+close all
+clear all
+% Lecture d'une image
+image = imread('MyImage.png');
+%affichage d'une image
+figure(1)
+imshow(image)
+title('Image originale en couleur');
+%size de l'image
+sizy=size(image)
+disp(['la taille de notre image est:', num2str(sizy)])
+
+%plans RGB
+figure (7);
+subplot(1,3,1);
+imshow(image(:,:,1)); % Plan Rouge
+title('Plan Rouge');
+
+subplot(1,3,2);
+imshow(image(:,:,2)); % Plan Vert
+title('Plan Vert');
+
+subplot(1,3,3);
+imshow(image(:,:,3)); % Plan Bleu
+title('Plan Bleu');
+
+% img en clr du plan R||G||B
+image_rouge = cat(3, image(:,:,1), zeros(size(image(:,:,2))), zeros(size(image(:,:,3))));
+image_vert = cat(3, zeros(size(image(:,:,1))),image(:,:,2), zeros(size(image(:,:,3))));
+image_bleu = cat(3, zeros(size(image(:,:,1))), zeros(size(image(:,:,2))), image(:,:,3));
+
+% Afficher les images RVB des plans couleur
+figure(8);
+subplot(1,3,1);
+imshow(image_rouge);
+title('Plan Rouge');
+
+subplot(1,3,2);
+imshow(image_vert);
+title('Plan Vert');
+
+subplot(1,3,3);
+imshow(image_bleu);
+title('Plan Bleu');
+
+% Séparer les plans de couleur
+plan_rouge = image(:,:,1);
+plan_vert = image(:,:,2);
+plan_bleu = image(:,:,3);
+
+% Appliquer histeq à chaque plan de couleur
+plan_rouge_eq =histeq(plan_rouge);
+plan_vert_eq = histeq(plan_vert);
+plan_bleu_eq = histeq(plan_bleu);
+
+% Normaliser les valeurs des canaux entre 0 et 1
+plan_rouge_eq_norm = double(plan_rouge_eq) / 255;
+plan_vert_eq_norm = double(plan_vert_eq) / 255;
+plan_bleu_eq_norm = double(plan_bleu_eq) / 255;
+
+% Multiplier les canaux par les valeurs désirées
+valeur_rouge_desiree = 245;
+valeur_vert_desiree = 245;
+valeur_bleu_desiree = 220;
+
+plan_rouge_final = uint8(plan_rouge_eq_norm * valeur_rouge_desiree);
+plan_vert_final = uint8(plan_vert_eq_norm * valeur_vert_desiree);
+plan_bleu_final = uint8(plan_bleu_eq_norm * valeur_bleu_desiree);
+
+% % Recomposer l'image à partir des plans traités
+image_finale = cat(3, plan_rouge_final, plan_vert_final, plan_bleu_final);
+% Recomposer une image couleur à partir des plans traités
+image_traitee = cat(3, plan_rouge_eq, plan_vert_eq, plan_bleu_eq);
+
+% Afficher l'image originale et l'image traitée
+figure(9);
+subplot(1,2,1);
+imshow(image);
+title('Image originale');
+
+subplot(1,2,2);
+imshow(image_traitee);
+title('Image traitée histeq(plan)');
+
+pixel_value = impixel(image, 9, 80);
+disp(['Valeur du pixel sélectionné : ', num2str(pixel_value)]);
+%tranfsformer l'image en niveau de gris 
+imageGray=rgb2gray(image)
+
+figure(2)
+imshow(imageGray)
+title('Image en niveaux de gris');
+%écrire une image
+imwrite(imageGray, 'monImageGray.jpg')
+
+% Convertir l'image RVB en image HSV
+image_hsv = rgb2hsv(image);
+% Récupérer les composantes HSV
+H = image_hsv(:,:,1); % Teinte
+S = image_hsv(:,:,2); % Saturation
+V = image_hsv(:,:,3); % Valeur
+% Atténuer la saturation en réduisant la composante S
+facteur_attenuation = 0.5; % Facteur d'atténuation de la saturation (peut être ajusté)
+S_attenuated = S * facteur_attenuation;
+S_attenuated_quart= S*0,25;
+S_attenuated_deux=S*100;
+% Remplacer la composante S dans l'image HSV atténuée
+image_hsv_attenuated = cat(3, H, S_attenuated, V);
+image_hsv_attenuated_quart = cat(3, H, S_attenuated_quart, V);
+image_hsv_attenuated_deux = cat(3, H, S_attenuated_deux, V);
+% Convertir l'image atténuée HSV en image RVB
+image_attenuated = hsv2rgb(image_hsv_attenuated);
+image_hsv_attenuated_quart = hsv2rgb(image_hsv_attenuated_quart);
+image_hsv_attenuated_deux = hsv2rgb(image_hsv_attenuated_deux);
+% Afficher l'image originale et l'image atténuée
+figure(3);
+subplot(2,2,1), imshow(image), title('Image originale');
+subplot(2,2,2), imshow(image_attenuated), title('Image atténuée');
+subplot(2,2,3), imshow(image_hsv_attenuated_quart), title('Image atténuée*0.25');
+subplot(2,2,4), imshow(image_hsv_attenuated_deux), title('Image atténuée*2');
