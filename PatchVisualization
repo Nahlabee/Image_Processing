@@ -1,0 +1,85 @@
+clear all; close all; clc
+
+%Exo 1
+% visualisation des patches n° 1, 13, 16, 22
+%filename=xlsread('Color_checher_gamin_22-10-2015 (2).xls)
+patch_1=xlsread('Color_checher_gamin_22-10-2015 (2).xls',1) % SUPPRIMER LES 2 PREMIERES LIGNES DE LA 1ERE FEUILLE ET CEST TOUT 
+disp(patch_1)
+
+patch_13=xlsread('Color_checher_gamin_22-10-2015 (2).xls',13)
+disp(patch_13)
+
+patch_16=xlsread('Color_checher_gamin_22-10-2015 (2).xls',16)
+disp(patch_16)
+
+patch_22=xlsread('Color_checher_gamin_22-10-2015 (2).xls',22)
+disp(patch_22)
+
+lambda1= patch_1(:,1)
+
+reflectance_1= patch_1(:,2)
+reflectance_13= patch_13(:,2)
+reflectance_16= patch_16(:,2)
+reflectance_22= patch_22(:,2)
+
+%visualization
+figure(1) 
+plot(lambda1, reflectance_1, 'r' , lambda1, reflectance_13, 'g',lambda1, reflectance_16, 'b' , lambda1, reflectance_22 , 'm')
+legend ( 'patch_1','patch_13' , 'patch_16', 'patch_22')
+xlabel ('lambda1')
+ylabel('Reflectance %')
+
+%2)	Représentation  des fonct de base CIE 1931 & CIE1964
+base_CIE_1931_x =xlsread('x2_10deg_05.xlsx', 1) %  X a 2°
+base_CIE_1964_x = xlsread('x2_10deg_05.xlsx', 2) % X a 10°
+
+x_2= base_CIE_1931_x(:,2)
+x_10= base_CIE_1964_x(:,2)
+
+base_CIE_1931_y =xlsread('y2_10deg_05.xlsx', 1) %  y a 2°
+base_CIE_1964_y = xlsread('y2_10deg_05.xlsx', 2) % y a 10°
+
+y_2= base_CIE_1931_y(:,2)
+y_10= base_CIE_1964_y(:,2)
+
+% Visualization
+figure(2) 
+plot(lambda1, x_2, 'r' , lambda1, x_10, 'g' )
+legend ('x_2' , 'x_10')
+xlabel ('λ') %lambda
+ylabel('x %')
+
+
+figure(3) 
+plot(lambda1, y_2, 'r' , lambda1, y_10, 'g' )
+legend ( 'y_2','y_10')
+xlabel ('λ')
+ylabel('y %')
+
+
+%Exos 2
+
+% Calcul des tristimulus XYZ pour le patch 1
+X_1 = trapz(lambda1, reflectance_1 .* x_CIE1931);
+Y_1 = trapz(lambda1, reflectance_1 .* y_CIE1931);
+Z_1 = trapz(lambda1, reflectance_1 .* z_CIE1931);
+
+
+% Affichage des résultats
+disp('Patch 1:');
+disp(['X = ', num2str(X_1)]);
+disp(['Y = ', num2str(Y_1)]);
+disp(['Z = ', num2str(Z_1)]);
+
+
+% QST3 : Conversion XYZ vers sRGB
+% Définition de la matrice
+matrice_XYZ_sRGB = [
+    3.2404542 -1.5371385 0.4985312;
+    -0.9692660 1.8759677 -0.0416968;
+    0.0556434 -0.2040259 1.0570456
+];
+
+% Conversion des tristimulus XYZ du patch 1 vers sRGB
+valeurs_sRGB_1 = matrice_XYZ_sRGB * [X_1; Y_1; Z_1];
+
