@@ -1,0 +1,87 @@
+
+%%%%%%%%%%Chargement de l'image%%%%%%
+
+Image=imread('PERROQUE.TIF');
+ImageFiltre = zeros(16,16,3);
+ImageCFA = zeros(16,16);
+Taille = size(Image);
+
+%%%%%%%%%MATRICAGE CFA %%%%%%%%%%%%
+for C=2:1:(Taille(2))
+   for L=2:1:(Taille(1))
+       detectC=mod(C,2);
+       detectL=mod(L,2);
+       
+       if(detectC==0 && detectL==1)    
+            ImageCFA(L,C)=Image(L,C,1);
+       end
+
+       
+       if(detectC==1 && detectL==0 )  
+             ImageCFA(L,C)=Image(L,C,3);
+       end
+       
+         if(detectC==1 && detectL==1 )  
+            ImageCFA(L,C)=Image(L,C,2); 
+         end
+         
+         if(detectC==0 && detectL==0 )  
+        ImageCFA(L,C)=Image(L,C,2); 
+         end
+   end
+end
+figure(5)
+subplot(1,2,1);
+
+ imshow(uint8(ImageCFA));
+
+%%%%%%%%%DEMATRICAGE CFA%%%%%%%%%%%%
+
+for C=2:1:(Taille(2)-1)
+   for L=2:1:(Taille(1)-1)
+       detectC=mod(C,2);
+       detectL=mod(L,2);
+       
+       if(detectC==0 && detectL==1)  
+B1=ImageCFA(L+1,C-1)+ImageCFA(L+1,C+1)+ImageCFA(L-1,C-1)+ImageCFA(L-1,C+1);
+Bc=(1/4)*B1;
+V1=ImageCFA(L+1,C)+ImageCFA(L-1,C)+ImageCFA(L,C+1)+ImageCFA(L,C-1);
+Vc=(1/4)*V1;
+ImageFiltre(L,C,1)=ImageCFA(L,C);
+ImageFiltre(L,C,2)=Vc;
+ImageFiltre(L,C,3)=Bc;
+       end
+       if(detectC==1 && detectL==0 )  
+ R1=ImageCFA(L+1,C-1)+ImageCFA(L+1,C+1)+ImageCFA(L-1,C-1)+ImageCFA(L-1,C+1);
+ Rc=(1/4)*R1;
+ V1=ImageCFA(L+1,C)+ImageCFA(L-1,C)+ImageCFA(L,C+1)+ImageCFA(L,C-1);
+ Vc=(1/4)*V1;
+ ImageFiltre(L,C,3)=ImageCFA(L,C);
+ ImageFiltre(L,C,2)=Vc;
+ ImageFiltre(L,C,1)=Rc;
+       end
+         if(detectC==1 && detectL==1 )  
+ R1=ImageCFA(L,C-1)+ImageCFA(L,C+1);
+ Rc=(1/2)*R1;
+ B1=ImageCFA(L+1,C)+ImageCFA(L-1,C);
+ Bc=(1/4)*B1;
+ ImageFiltre(L,C,3)=Bc;
+ ImageFiltre(L,C,2)=ImageCFA(L,C);
+ ImageFiltre(L,C,1)=Rc;
+         end
+         if(detectC==0 && detectL==0 )  
+ B1=ImageCFA(L,C-1)+ImageCFA(L,C+1);
+ Bc=(1/2)*B1;
+ R1=ImageCFA(L+1,C)+ImageCFA(L-1,C);
+ Rc=(1/4)*B1;
+ ImageFiltre(L,C,3)=Bc;
+ ImageFiltre(L,C,2)=ImageCFA(L,C);
+ ImageFiltre(L,C,1)=Rc;
+         end
+   end
+end
+
+%%%%%%%%%% Affichage %%%%%%
+
+subplot(1,2,2);
+imshow(uint8(ImageFiltre));
