@@ -1,0 +1,90 @@
+
+clc
+close all
+clear all 
+
+
+% Chargement de l'image
+img = imread('0404_GY89137_parasite(5).jpg');
+
+
+% Conversion de l'image en espace de couleur HSV
+img_hsv = rgb2hsv(img); % Conversion en espace HSV
+
+%récup compo
+hue = img_hsv(:,:,1); % Canal Teinte
+saturation = img_hsv(:,:,2); % Canal Saturation
+value = img_hsv(:,:,3); % Canal Valeur (luminosité)
+
+
+% Seuils pour segmenter les cellules malades et saines
+threshold_hue = 0.6; % Seuil pour la teinte du colorant
+threshold_saturation = 0.4; % Seuil pour la saturation du colorant
+% Segmentation des cellules (malades et saines)
+bw_cells = (hue > threshold_hue) & (saturation > threshold_saturation); % Cellules avec colorant
+% Affichage de la segmentation des cellules
+figure(1);
+subplot(3,1,1)
+imshow(bw_cells);
+title('Segmentation des cellules');
+
+
+% Filtrage des petites cellules et des artefacts de bruit
+se = strel('disk', 5); % Element structurant de forme disque
+bw_cells_cleaned = imopen(bw_cells, se); % Opération d'ouverture (enlève petites régions)
+bw_cells_cleaned = imclose(bw_cells_cleaned, se); % Opération de fermeture (comble les trous)
+% Affichage de l'image après nettoyage
+subplot(3,1,2);
+imshow(bw_cells_cleaned);
+title('Segmentation nettoyée des cellules');
+% Analyse des propriétés des régions détectées
+stats = regionprops(bw_cells_cleaned, 'Area', 'Centroid', 'BoundingBox', 'Eccentricity', 'Solidity');
+% Initialisation des compteurs pour les cellules saines et malades
+count_healthy = 0;
+count_sick = 0;
+% Critères de taille minimale et de position des cellules
+min_size = 100; % Taille minimale des cellules
+border_margin = 20; % Marge de bord à exclure
+% Parcours des cellules détectées
+for k = 1:length(stats)
+ % Exclusion des cellules proches des bords de l'image
+ if stats(k).Area < min_size || ...
+ stats(k).Centroid(1) < border_margin || ...
+ stats(k).Centroid(1) > size(bw_cells_cleaned,2) - border_margin || ...
+ stats(k).Centroid(2) < border_margin || ...
+ stats(k).Centroid(2) > size(bw_cells_cleaned,1) - border_margin
+ continue;
+ end
+ 
+ % Détection des cellules malades (celles avec un débordement de colorant)
+ % Ici on utilise la 'Solidity' pour détecter la "compacité" de la cellule.
+ % Une cellule saine aura une compacité plus élevée, tandis que les malades auront des trous.
+ if stats(k).Solidity < 0.8 % Les cellules malades ont une forme plus irrégulière
+ count_sick = count_sick + 1; % Cellule malade
+ else
+ count_healthy = count_healthy + 1; % Cellule saine
+ end
+end
+% Affichage des résultats du comptage
+disp(['Nombre de cellules saines : ', num2str(count_healthy)]);
+disp(['Nombre de cellules malades : ', num2str(count_sick)]);
+% Affichage de l'image avec les détections des cellules
+% subplot(3,1,3);
+figure(3)
+imshow(img);
+hold on;
+
+
+%use Internet
+% Dessiner les boîtes de détection autour des cellules
+for k = 1:length(stats)
+ if stats(k).Area >= min_size && ...
+ stats(k).Centroid(1) >= border_margin && ...
+ stats(k).Centroid(1) <= size(bw_cells_cleaned,2) - border_margin && ...
+ stats(k).Centroid(2) >= border_margin && ...
+ stats(k).Centroid(2) <= size(bw_cells_cleaned,1) - border_margin
+ rectangle('Position', stats(k).BoundingBox, 'EdgeColor', 'g', 'LineWidth', 2); % Cellules détectées
+ end
+end
+hold off;
+title('Cellules détectées sur l''image');
