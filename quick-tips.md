@@ -1,4 +1,4 @@
-# 📌 Quick Coding Tips
+# 📌 Quick Coding Tips VSCode & Py
 
 #### 1. 🔁 Replace a Word in Multiple Files (VS Code)
 Use VS Code’s global search to quickly replace a word or variable across your entire codebase:
